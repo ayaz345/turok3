@@ -34,11 +34,11 @@ diff_count = args.count
 if args.make:
     check_call(["make", "-j4", "COMPARE=0"])
 
-baseimg = f"versions/baserom.us.z64"
-basemap = f"expected/versions/us/build/turok3.us.map"
+baseimg = "versions/baserom.us.z64"
+basemap = "expected/versions/us/build/turok3.us.map"
 
-myimg = f"versions/us/build/turok3.us.z64"
-mymap = f"versions/us/build/turok3.us.map"
+myimg = "versions/us/build/turok3.us.z64"
+mymap = "versions/us/build/turok3.us.map"
 
 if not os.path.isfile(baseimg):
     print(f"{baseimg} must exist.")
@@ -166,15 +166,14 @@ def map_diff():
                 found = (sym, addr[1], addr[2])
     if min_ram is None:
         return False
-    else:
+    print(
+        f"Map appears to have shifted just before {found[0]} ({found[1]}) -- in {found[2]}?"
+    )
+    if found[2] is not None and found[2] not in map2:
         print(
-            f"Map appears to have shifted just before {found[0]} ({found[1]}) -- in {found[2]}?"
+            f"(Base map file {basemap} out of date due to new or renamed symbols, so result may be imprecise.)"
         )
-        if found[2] is not None and found[2] not in map2:
-            print(
-                f"(Base map file {basemap} out of date due to new or renamed symbols, so result may be imprecise.)"
-            )
-        return True
+    return True
 
 
 def hexbytes(bs):
@@ -211,7 +210,7 @@ if diffs == 0:
     print("No differences but ROMs differ?")
     exit()
 
-if len(found_instr_diff) > 0:
+if found_instr_diff:
     for i in found_instr_diff:
         print(f"Instruction difference at ROM addr 0x{i:X}, {search_rom_address(i)}")
         print(
@@ -234,8 +233,8 @@ if diffs > 100:
         print(f"No ROM shift{' (!?)' if definite_shift else ''}")
 
 if args.diff_args:
-    if len(found_instr_diff) < 1:
-        print(f"No instruction difference to run diff.py on")
+    if not found_instr_diff:
+        print("No instruction difference to run diff.py on")
         exit()
 
     diff_sym = search_rom_address(found_instr_diff[0]).split()[0]
@@ -244,7 +243,7 @@ if args.diff_args:
     else:
         diff_args = args.diff_args
     if diff_args[0] != "-":
-        diff_args = "-" + diff_args
+        diff_args = f"-{diff_args}"
     check_call(
         [
             "python3",

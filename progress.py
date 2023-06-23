@@ -33,10 +33,8 @@ PROGRAM = "turok3"
 def strip_c_comments(text):
     def replacer(match):
         s = match.group(0)
-        if s.startswith("/"):
-            return " "
-        else:
-            return s
+        return " " if s.startswith("/") else s
+
     return re.sub(STRIP_C_COMMENTS_RE, replacer, text)
 
 def GetNonMatchingFunctions(files):
@@ -45,13 +43,14 @@ def GetNonMatchingFunctions(files):
     for file in files:
         with open(file, "r") as f:
             text = strip_c_comments(f.read())
-            for match in NON_MATCHING_PATTERN.finditer(text):
-                functions.append(match.group(1) + "/" + match.group(2) + ".s")
-
+            functions.extend(
+                f"{match.group(1)}/{match.group(2)}.s"
+                for match in NON_MATCHING_PATTERN.finditer(text)
+            )
     return functions
 
 def ReadAllLines(fileName):
-    lineList = list()
+    lineList = []
     with open(fileName) as f:
         lineList = f.readlines()
 
@@ -61,10 +60,7 @@ def GetFiles(path, ext):
     files = []
 
     for r, d, f in os.walk(path):
-        for file in f:
-            if file.endswith(ext):
-                files.append(os.path.join(r, file))
-
+        files.extend(os.path.join(r, file) for file in f if file.endswith(ext))
     return files
 
 def GetNonMatchingSize(path):
@@ -86,10 +82,10 @@ def UpdateReadme(tofind, pct):
         filedata = file.read()
 
     index = filedata.find(tofind)
-    if (not index == -1):
+    if index != -1:
         index += len(tofind)
         qndex = filedata.find("-", index)
-        if (not qndex == -1):
+        if qndex != -1:
             filedata = filedata.replace(filedata[index:qndex], '%.2f' % pct, 1)
 
     with open('README.md', 'w') as file:
@@ -249,11 +245,7 @@ levelNames = [
 ]
 
 chapters = len(levelNames)
-totalLevels = 0
-for levels in levelNames:
-    totalLevels += len(levels)
-
-
+totalLevels = sum(len(levels) for levels in levelNames)
 if (args.dumpcsv):
     git_object = git.Repo().head.object
     data = [

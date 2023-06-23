@@ -7,8 +7,8 @@ import argparse
 from pathlib import Path
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
-root_dir = script_dir + "/../"
-src_dir = root_dir + "src/"
+root_dir = f"{script_dir}/../"
+src_dir = f"{root_dir}src/"
 
 
 def get_c_dir(dirname):
@@ -49,7 +49,6 @@ def main():
 
     if args.filepath:
         c_file_path = args.filepath
-        print("Using file: {}".format(c_file_path))
     else:
         this_dir = Path.cwd()
         c_dir_path = get_c_dir(this_dir.name)
@@ -58,8 +57,7 @@ def main():
                 "Cannot find appropriate c file dir. In argumentless mode, run this script from the c file's corresponding asm dir.")
         c_file = get_c_file(c_dir_path)
         c_file_path = os.path.join(c_dir_path, c_file)
-        print("Using file: {}".format(c_file_path))
-
+    print(f"Using file: {c_file_path}")
     output = import_c_file(c_file_path)
 
     with open(os.path.join(root_dir, "ctx.c"), "w", encoding="UTF-8") as f:
